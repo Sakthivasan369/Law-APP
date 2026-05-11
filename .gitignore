@@ -1,0 +1,39 @@
+# --- Environment / Secrets ---
+.env
+.env.local
+.env.*.local
+*.env
+
+# --- OS / IDE ---
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# --- Mobile (Expo/React Native) ---
+mobileapp/node_modules/
+mobileapp/.expo/
+mobileapp/dist/
+mobileapp/npm-debug.log*
+mobileapp/yarn-error.log*
+mobileapp/.tamagui/
+# If you eventually eject or use prebuild:
+mobileapp/ios/
+mobileapp/android/
+
+# --- Backend (Go) ---
+# Binaries and tool binaries
+bin/
+server/cmd/api/api  # (or whatever your compiled binary name is)
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test coverage
+*.out
+
+# --- Media & Storage ---
+media/videos/*
+!media/videos/.gitkeep
