@@ -7,8 +7,8 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import { MOCK_COURSES, CATEGORIES } from '../constants/mockData';
@@ -23,6 +23,7 @@ interface Props {
 }
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -33,7 +34,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   });
 
   const renderCustomHeader = () => (
-    <View style={styles.customHeader}>
+    <View style={[styles.customHeader, { paddingTop: Math.max(insets.top, 10) }]}>
       <TouchableOpacity 
         style={styles.menuIcon} 
         onPress={() => (navigation as any).openDrawer()}
@@ -89,7 +90,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {renderCustomHeader()}
       <FlatList
         data={filteredCourses}
@@ -104,7 +105,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

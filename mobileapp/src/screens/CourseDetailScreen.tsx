@@ -7,8 +7,8 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
-  SafeAreaView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import { MOCK_COURSES } from '../constants/mockData';
@@ -26,6 +26,7 @@ interface Props {
 }
 
 const CourseDetailScreen: React.FC<Props> = ({ route, navigation }) => {
+  const insets = useSafeAreaInsets();
   const { courseId } = route.params;
   const course = MOCK_COURSES.find(c => c.id === courseId) || MOCK_COURSES[0];
   const [activeTab, setActiveTab] = useState<'Description' | 'All Classes' | 'Infinite Learning'>('Description');
@@ -44,9 +45,9 @@ const CourseDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top, height: 60 + insets.top }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
           <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
@@ -136,7 +137,8 @@ const CourseDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           <Text style={styles.buyButtonText}>BUY NOW</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
+    
   );
 };
 

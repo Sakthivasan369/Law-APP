@@ -5,12 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 
 const ProfileScreen = ({ navigation }: any) => {
+  const insets = useSafeAreaInsets();
   const renderDetailRow = (icon: any, label: string, value: string, showBorder = true) => (
     <View style={[styles.detailRow, !showBorder && { borderBottomWidth: 0 }]}>
       <View style={styles.detailLeft}>
@@ -24,9 +25,9 @@ const ProfileScreen = ({ navigation }: any) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top, height: 60 + insets.top }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
@@ -77,7 +78,7 @@ const ProfileScreen = ({ navigation }: any) => {
           <Ionicons name="chevron-forward" size={20} color={COLORS.textDisabled} />
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
