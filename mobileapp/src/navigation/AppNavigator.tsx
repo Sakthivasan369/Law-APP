@@ -1,12 +1,13 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
-// Import Screens (to be created)
+// Screens
 import HomeScreen from '../screens/HomeScreen';
 import CourseDetailScreen from '../screens/CourseDetailScreen';
 import CartScreen from '../screens/CartScreen';
@@ -14,8 +15,11 @@ import VideoPlayerScreen from '../screens/VideoPlayerScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import MyCoursesScreen from '../screens/MyCoursesScreen';
 
+// Custom Components
+import CustomDrawer from '../components/CustomDrawer';
+
 export type RootStackParamList = {
-  MainTabs: undefined;
+  DrawerRoot: undefined;
   CourseDetail: { courseId: string };
   VideoPlayer: { courseId: string; lessonId: string };
 };
@@ -29,6 +33,7 @@ export type TabParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
+const Drawer = createDrawerNavigator();
 
 const HomeHeaderRight = ({ navigation }: any) => (
   <TouchableOpacity 
@@ -73,6 +78,21 @@ const TabNavigator = () => {
   );
 };
 
+const DrawerNavigator = () => {
+  return (
+    <Drawer.Navigator
+      drawerContent={(props) => <CustomDrawer {...props} />}
+      screenOptions={{
+        headerShown: false,
+        drawerType: 'front',
+        overlayColor: 'rgba(0,0,0,0.5)',
+      }}
+    >
+      <Drawer.Screen name="MainTabs" component={TabNavigator} />
+    </Drawer.Navigator>
+  );
+};
+
 const AppNavigator = () => {
   return (
     <NavigationContainer>
@@ -84,14 +104,14 @@ const AppNavigator = () => {
         })}
       >
         <Stack.Screen 
-          name="MainTabs" 
-          component={TabNavigator} 
+          name="DrawerRoot" 
+          component={DrawerNavigator} 
           options={{ headerShown: false }} 
         />
         <Stack.Screen 
           name="CourseDetail" 
           component={CourseDetailScreen} 
-          options={{ title: 'Course Details' }} 
+          options={{ headerShown: false }} // Hidden because CourseDetail has custom header
         />
         <Stack.Screen 
           name="VideoPlayer" 

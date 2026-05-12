@@ -1,13 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, ScrollView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, BORDER_RADIUS } from '../constants/theme';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+  SafeAreaView,
+} from 'react-native';
+import { Ionicons, Feather } from '@expo/vector-icons';
+import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import { MOCK_COURSES, CATEGORIES } from '../constants/mockData';
 import CourseCard from '../components/CourseCard';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
-type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'MainTabs'>;
+type HomeScreenNavigationProp = DrawerNavigationProp<any>;
 
 interface Props {
   navigation: HomeScreenNavigationProp;
@@ -23,21 +32,34 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     return matchesCategory && matchesSearch;
   });
 
+  const renderCustomHeader = () => (
+    <View style={styles.customHeader}>
+      <TouchableOpacity 
+        style={styles.menuIcon} 
+        onPress={() => (navigation as any).openDrawer()}
+      >
+        <Feather name="menu" size={24} color={COLORS.textPrimary} />
+      </TouchableOpacity>
+      
+      <View style={styles.searchBarWrapper}>
+        <View style={styles.pillSearchBar}>
+          <Ionicons name="search" size={18} color={COLORS.textSecondary} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search for courses..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholderTextColor={COLORS.textDisabled}
+          />
+        </View>
+      </View>
+    </View>
+  );
+
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text style={styles.welcomeText}>Hello, Sakthivasan!</Text>
+      <Text style={styles.welcomeText}>Hello, SAKTHIVASAN!</Text>
       <Text style={styles.subText}>What would you like to learn today?</Text>
-      
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color={COLORS.textSecondary} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search for legal courses..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholderTextColor={COLORS.textDisabled}
-        />
-      </View>
 
       <ScrollView 
         horizontal 
@@ -67,21 +89,22 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      {renderCustomHeader()}
       <FlatList
         data={filteredCourses}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
           <CourseCard 
             course={item} 
-            onPress={(id) => navigation.navigate('CourseDetail', { courseId: id })} 
+            onPress={(id) => navigation.navigate('CourseDetail' as any, { courseId: id })} 
           />
         )}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -90,12 +113,43 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  customHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    backgroundColor: COLORS.white,
+  },
+  menuIcon: {
+    padding: SPACING.xs,
+  },
+  searchBarWrapper: {
+    flex: 1,
+    marginLeft: SPACING.sm,
+  },
+  pillSearchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: BORDER_RADIUS.full,
+    height: 44,
+    paddingHorizontal: SPACING.md,
+  },
+  searchIcon: {
+    marginRight: SPACING.xs,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.textPrimary,
+    height: '100%',
+  },
   listContent: {
     paddingBottom: SPACING.xl,
   },
   header: {
     padding: SPACING.md,
-    paddingTop: SPACING.xl,
+    paddingTop: SPACING.sm,
   },
   welcomeText: {
     fontSize: 24,
@@ -106,21 +160,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textSecondary,
     marginTop: 4,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    borderRadius: BORDER_RADIUS.lg,
-    paddingHorizontal: SPACING.md,
-    marginTop: SPACING.lg,
-    height: 50,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: SPACING.sm,
-    fontSize: 16,
-    color: COLORS.textPrimary,
   },
   categoryContainer: {
     marginTop: SPACING.md,

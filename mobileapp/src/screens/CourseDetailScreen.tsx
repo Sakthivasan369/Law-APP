@@ -1,404 +1,298 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
-import { Video } from 'expo-av';
-import { Ionicons } from '@expo/vector-icons';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Dimensions,
+  SafeAreaView,
+} from 'react-native';
+import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
-import { MOCK_COURSES, MOCK_MODULES, MOCK_REVIEWS } from '../constants/mockData';
-import PrimaryButton from '../components/PrimaryButton';
+import { MOCK_COURSES } from '../constants/mockData';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const { width } = Dimensions.get('window');
+const BRAND_PURPLE = '#5A4BFF';
 
 type CourseDetailRouteProp = RouteProp<RootStackParamList, 'CourseDetail'>;
-type CourseDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'CourseDetail'>;
 
 interface Props {
   route: CourseDetailRouteProp;
-  navigation: CourseDetailNavigationProp;
+  navigation: any;
 }
 
 const CourseDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const { courseId } = route.params;
   const course = MOCK_COURSES.find(c => c.id === courseId) || MOCK_COURSES[0];
-  const [activeTab, setActiveTab] = useState<'Curriculum' | 'Reviews' | 'About'>('Curriculum');
-  const [expandedModules, setExpandedModules] = useState<string[]>(['m1']);
+  const [activeTab, setActiveTab] = useState<'Description' | 'All Classes' | 'Infinite Learning'>('Description');
 
-  const toggleModule = (id: string) => {
-    if (expandedModules.includes(id)) {
-      setExpandedModules(expandedModules.filter(m => m !== id));
-    } else {
-      setExpandedModules([...expandedModules, id]);
-    }
-  };
+  const batchFeatures = [
+    { icon: 'calendar', text: 'Course Duration: 23 May - 30 June' },
+    { icon: 'tv', text: 'Online lectures' },
+    { icon: 'description', text: 'DPPs and Test Solutions' },
+    { icon: 'star', text: 'Premium study material' },
+  ];
 
-  const renderCurriculum = () => (
-    <View style={styles.tabContent}>
-      {MOCK_MODULES.map(module => (
-        <View key={module.id} style={styles.moduleContainer}>
-          <TouchableOpacity 
-            style={styles.moduleHeader} 
-            onPress={() => toggleModule(module.id)}
-          >
-            <Text style={styles.moduleTitle}>{module.title}</Text>
-            <Ionicons 
-              name={expandedModules.includes(module.id) ? 'chevron-up' : 'chevron-down'} 
-              size={20} 
-              color={COLORS.textSecondary} 
-            />
-          </TouchableOpacity>
-          
-          {expandedModules.includes(module.id) && (
-            <View style={styles.lessonsList}>
-              {module.lessons.map(lesson => (
-                <TouchableOpacity 
-                  key={lesson.id} 
-                  style={styles.lessonItem}
-                  disabled={lesson.isLocked}
-                  onPress={() => navigation.navigate('VideoPlayer', { courseId, lessonId: lesson.id })}
-                >
-                  <View style={styles.lessonInfo}>
-                    <Ionicons 
-                      name={lesson.isLocked ? 'lock-closed' : 'play-circle'} 
-                      size={20} 
-                      color={lesson.isLocked ? COLORS.textDisabled : COLORS.primary} 
-                    />
-                    <Text style={[styles.lessonTitle, lesson.isLocked && styles.lessonLockedText]}>
-                      {lesson.title}
-                    </Text>
-                  </View>
-                  <Text style={styles.lessonDuration}>{lesson.duration}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
-      ))}
-    </View>
-  );
-
-  const renderReviews = () => (
-    <View style={styles.tabContent}>
-      {MOCK_REVIEWS.map(review => (
-        <View key={review.id} style={styles.reviewItem}>
-          <View style={styles.reviewHeader}>
-            <Image source={{ uri: review.avatar }} style={styles.avatar} />
-            <View style={styles.reviewUserInfo}>
-              <Text style={styles.reviewUser}>{review.user}</Text>
-              <View style={styles.ratingRow}>
-                {[1, 2, 3, 4, 5].map(star => (
-                  <Ionicons 
-                    key={star} 
-                    name="star" 
-                    size={12} 
-                    color={star <= review.rating ? COLORS.secondary : COLORS.textDisabled} 
-                  />
-                ))}
-              </View>
-            </View>
-          </View>
-          <Text style={styles.reviewComment}>{review.comment}</Text>
-        </View>
-      ))}
-    </View>
-  );
-
-  const renderAbout = () => (
-    <View style={styles.tabContent}>
-      <Text style={styles.aboutTitle}>Description</Text>
-      <Text style={styles.aboutText}>{course.description}</Text>
-      <Text style={[styles.aboutTitle, { marginTop: SPACING.lg }]}>Instructor</Text>
-      <View style={styles.instructorCard}>
-        <View style={styles.instructorInfo}>
-          <Text style={styles.instructorName}>{course.instructor}</Text>
-          <Text style={styles.instructorBio}>Senior Advocate, High Court of Madras. 15+ years of experience in constitutional law.</Text>
-        </View>
-      </View>
-    </View>
-  );
+  const demoVideos = [
+    { id: '1', title: 'Introduction to Data Science', duration: '12:45', thumbnail: 'https://images.unsplash.com/photo-1551288049-bbda3865c170?w=400&q=80' },
+    { id: '2', title: 'Probability & Statistics', duration: '18:20', thumbnail: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=400&q=80' },
+    { id: '3', title: 'Linear Algebra for AI', duration: '15:10', thumbnail: 'https://images.unsplash.com/photo-1509228468518-180dd48632a2?w=400&q=80' },
+  ];
 
   return (
-    <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.videoContainer}>
-          <Video
-            source={{ uri: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4' }}
-            rate={1.0}
-            volume={1.0}
-            isMuted={false}
-            resizeMode="cover"
-            shouldPlay={false}
-            useNativeControls
-            style={styles.video}
-          />
-          <View style={styles.videoOverlay}>
-            <TouchableOpacity style={styles.videoIconButton} onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
+          <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle} numberOfLines={1}>{course.title}</Text>
+        <TouchableOpacity style={styles.iconButton}>
+          <Feather name="share-2" size={22} color={COLORS.textPrimary} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Main Image/Video Placeholder */}
+        <Image source={{ uri: course.thumbnail }} style={styles.courseImage} />
+
+        {/* Sticky Segmented Tabs */}
+        <View style={styles.tabBar}>
+          {(['Description', 'All Classes', 'Infinite Learning'] as const).map(tab => (
+            <TouchableOpacity 
+              key={tab} 
+              style={[styles.tab, activeTab === tab && styles.activeTab]}
+              onPress={() => setActiveTab(tab)}
+            >
+              <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.videoIconButton}>
-              <Ionicons name="share-social-outline" size={24} color={COLORS.white} />
-            </TouchableOpacity>
-          </View>
+          ))}
         </View>
 
-        <View style={styles.content}>
-          <View style={styles.badgeRow}>
-            <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText}>{course.category}</Text>
-            </View>
-            {course.isPremium && (
-              <View style={[styles.categoryBadge, { backgroundColor: COLORS.secondary }]}>
-                <Text style={[styles.categoryText, { color: COLORS.white }]}>PREMIUM</Text>
+        <View style={styles.paddingContainer}>
+          {/* This Batch Includes */}
+          <Text style={styles.sectionTitle}>This Batch Includes</Text>
+          {batchFeatures.map((feature, index) => (
+            <View key={index} style={styles.featureRow}>
+              <View style={styles.featureIconContainer}>
+                <MaterialIcons name={feature.icon as any} size={18} color={BRAND_PURPLE} />
               </View>
-            )}
+              <Text style={styles.featureText}>{feature.text}</Text>
+            </View>
+          ))}
+
+          {/* Subjects List */}
+          <View style={styles.subjectsSection}>
+            <View style={styles.subjectsHeader}>
+              <Ionicons name="book" size={20} color={BRAND_PURPLE} />
+              <Text style={styles.subjectsTitle}>Subjects Covered</Text>
+            </View>
+            <Text style={styles.subjectsText}>
+              Machine Learning, Probability & Statistics, Linear Algebra, Calculus, Python Programming, Data Structures, AI Ethics
+            </Text>
           </View>
 
-          <Text style={styles.title}>{course.title}</Text>
-          
-          <View style={styles.metaRow}>
-            <Ionicons name="star" size={16} color={COLORS.secondary} />
-            <Text style={styles.metaText}>{course.rating} (1.2k Reviews)</Text>
-            <View style={styles.dot} />
-            <Text style={styles.metaText}>{course.enrolledCount} Students</Text>
+          {/* Demo Videos Scroller */}
+          <View style={styles.demoHeader}>
+            <Text style={styles.sectionTitle}>Demo Videos</Text>
+            <TouchableOpacity>
+              <Text style={styles.viewAllText}>View All</Text>
+            </TouchableOpacity>
           </View>
-
-          <View style={styles.tabsRow}>
-            {(['Curriculum', 'Reviews', 'About'] as const).map(tab => (
-              <TouchableOpacity 
-                key={tab} 
-                style={[styles.tab, activeTab === tab && styles.activeTab]}
-                onPress={() => setActiveTab(tab)}
-              >
-                <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {activeTab === 'Curriculum' && renderCurriculum()}
-          {activeTab === 'Reviews' && renderReviews()}
-          {activeTab === 'About' && renderAbout()}
         </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.demoScroller}>
+          {demoVideos.map(video => (
+            <TouchableOpacity key={video.id} style={styles.demoCard}>
+              <View style={styles.thumbnailContainer}>
+                <Image source={{ uri: video.thumbnail }} style={styles.demoThumbnail} />
+                <View style={styles.playOverlay}>
+                  <Ionicons name="play" size={24} color={COLORS.white} />
+                </View>
+              </View>
+              <Text style={styles.demoTitle} numberOfLines={1}>{video.title}</Text>
+              <Text style={styles.demoDuration}>{video.duration} mins</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </ScrollView>
 
+      {/* Sticky Checkout Footer */}
       <View style={styles.footer}>
-        <View>
-          <Text style={styles.priceLabel}>Full Course</Text>
-          <Text style={styles.footerPrice}>₹{course.price}</Text>
+        <View style={styles.priceContainer}>
+          <View style={styles.priceRow}>
+            <Text style={styles.discountedPrice}>₹14999</Text>
+            <View style={styles.discountBadge}>
+              <Text style={styles.discountText}>50% OFF</Text>
+            </View>
+          </View>
+          <Text style={styles.originalPrice}>₹29999</Text>
         </View>
-        <PrimaryButton 
-          title="Add to Cart" 
-          onPress={() => navigation.navigate('CartTab' as any)} 
-          style={styles.footerButton}
-        />
+        <TouchableOpacity style={styles.buyButton}>
+          <Text style={styles.buyButtonText}>BUY NOW</Text>
+        </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.white,
   },
-  videoContainer: {
-    width: '100%',
-    height: 220,
-    backgroundColor: '#000',
-  },
-  video: {
-    width: '100%',
-    height: '100%',
-  },
-  videoOverlay: {
-    position: 'absolute',
-    top: 40,
-    left: 0,
-    right: 0,
+  header: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.md,
+    height: 60,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
-  videoIconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    padding: SPACING.md,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    marginBottom: SPACING.sm,
-  },
-  categoryBadge: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: BORDER_RADIUS.sm,
-    marginRight: 8,
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: COLORS.textSecondary,
-  },
-  title: {
-    fontSize: 24,
+  headerTitle: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: COLORS.textPrimary,
-    marginBottom: SPACING.sm,
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 10,
   },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
+  iconButton: {
+    padding: 8,
   },
-  metaText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginLeft: 4,
+  scrollContent: {
+    paddingBottom: 120,
   },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: COLORS.textDisabled,
-    marginHorizontal: 8,
+  courseImage: {
+    width: '100%',
+    height: 220,
+    resizeMode: 'cover',
   },
-  tabsRow: {
+  tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    marginBottom: SPACING.md,
+    borderBottomColor: '#F3F4F6',
+    backgroundColor: COLORS.white,
   },
   tab: {
-    paddingVertical: 12,
-    marginRight: 24,
-    borderBottomWidth: 2,
+    flex: 1,
+    paddingVertical: 15,
+    alignItems: 'center',
+    borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: COLORS.primary,
+    borderBottomColor: BRAND_PURPLE,
   },
   tabText: {
-    fontSize: 16,
+    fontSize: 13,
     color: COLORS.textSecondary,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   activeTabText: {
-    color: COLORS.primary,
-    fontWeight: 'bold',
+    color: BRAND_PURPLE,
   },
-  tabContent: {
-    paddingBottom: 100,
-  },
-  moduleContainer: {
-    marginBottom: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: BORDER_RADIUS.md,
-    overflow: 'hidden',
-  },
-  moduleHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  paddingContainer: {
     padding: SPACING.md,
-    backgroundColor: '#F9FAFB',
   },
-  moduleTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
-  },
-  lessonsList: {
-    paddingHorizontal: SPACING.md,
-  },
-  lessonItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
-  lessonInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  lessonTitle: {
-    fontSize: 14,
-    color: COLORS.textPrimary,
-    marginLeft: 12,
-  },
-  lessonLockedText: {
-    color: COLORS.textDisabled,
-  },
-  lessonDuration: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  reviewItem: {
-    marginBottom: SPACING.lg,
-  },
-  reviewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  reviewUserInfo: {
-    marginLeft: 12,
-  },
-  reviewUser: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    marginTop: 2,
-  },
-  reviewComment: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    lineHeight: 20,
-  },
-  aboutTitle: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.textPrimary,
-    marginBottom: 8,
+    marginBottom: SPACING.md,
   },
-  aboutText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    lineHeight: 22,
-  },
-  instructorCard: {
+  featureRow: {
     flexDirection: 'row',
-    padding: SPACING.md,
-    backgroundColor: '#F9FAFB',
-    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  instructorName: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  featureIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F0EFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  featureText: {
+    fontSize: 14,
     color: COLORS.textPrimary,
   },
-  instructorBio: {
+  subjectsSection: {
+    backgroundColor: '#F9FAFB',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    marginVertical: SPACING.lg,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  subjectsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  subjectsTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    marginLeft: 10,
+  },
+  subjectsText: {
     fontSize: 13,
     color: COLORS.textSecondary,
-    marginTop: 4,
+    lineHeight: 20,
+  },
+  demoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  viewAllText: {
+    color: BRAND_PURPLE,
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  demoScroller: {
+    paddingLeft: SPACING.md,
+    paddingBottom: SPACING.md,
+  },
+  demoCard: {
+    width: width * 0.6,
+    marginRight: SPACING.md,
+  },
+  thumbnailContainer: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    borderRadius: BORDER_RADIUS.md,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+    marginBottom: 8,
+  },
+  demoThumbnail: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.8,
+  },
+  playOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  demoTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  demoDuration: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
   footer: {
     position: 'absolute',
@@ -411,19 +305,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
     ...SHADOWS.medium,
   },
-  priceLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
+  priceContainer: {
+    flex: 1,
   },
-  footerPrice: {
-    fontSize: 24,
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  discountedPrice: {
+    fontSize: 22,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: COLORS.textPrimary,
   },
-  footerButton: {
-    width: width * 0.5,
+  discountBadge: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
+  discountText: {
+    color: '#166534',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  originalPrice: {
+    fontSize: 14,
+    color: COLORS.textDisabled,
+    textDecorationLine: 'line-through',
+    marginTop: 2,
+  },
+  buyButton: {
+    backgroundColor: BRAND_PURPLE,
+    paddingHorizontal: 40,
+    paddingVertical: 14,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  buyButtonText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 
