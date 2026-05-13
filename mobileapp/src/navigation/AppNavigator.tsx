@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { jwtDecode } from 'jwt-decode';
+import { getAuthToken } from '../services/api';
 
 // Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -14,26 +16,37 @@ import CartScreen from '../screens/CartScreen';
 import VideoPlayerScreen from '../screens/VideoPlayerScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import MyCoursesScreen from '../screens/MyCoursesScreen';
+import EmailInputScreen from '../screens/EmailInputScreen';
+import OTPScreen from '../screens/OTPScreen';
+import ProfileSetupScreen from '../screens/ProfileSetupScreen';
 
 // Custom Components
 import CustomDrawer from '../components/CustomDrawer';
 
 export type RootStackParamList = {
-  DrawerRoot: undefined;
+  Auth: undefined;
+  Onboarding: undefined;
+  App: undefined;
   CourseDetail: { courseId: string };
   VideoPlayer: { courseId: string; lessonId: string };
 };
 
-export type TabParamList = {
-  HomeTab: undefined;
-  MyCoursesTab: undefined;
-  CartTab: undefined;
-  ProfileTab: undefined;
+export type AuthStackParamList = {
+  EmailInput: undefined;
+  OTP: { email: string };
 };
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
-const Tab = createBottomTabNavigator<TabParamList>();
+const RootStack = createNativeStackNavigator<RootStackParamList>();
+const AuthStack = createNativeStackNavigator<AuthStackParamList>();
+const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
+
+const AuthNavigator = () => (
+  <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+    <AuthStack.Screen name="EmailInput" component={EmailInputScreen} />
+    <AuthStack.Screen name="OTP" component={OTPScreen} />
+  </AuthStack.Navigator>
+);
 
 const HomeHeaderRight = ({ navigation }: any) => (
   <TouchableOpacity 
@@ -49,7 +62,7 @@ const TabNavigator = () => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.prototype.getRawProps;
+          let iconName: keyof typeof Ionicons.prototype.getRawProps = 'help-circle-outline';
 
           if (route.name === 'HomeTab') {
             iconName = focused ? 'home' : 'home-outline';
@@ -59,8 +72,6 @@ const TabNavigator = () => {
             iconName = focused ? 'cart' : 'cart-outline';
           } else if (route.name === 'ProfileTab') {
             iconName = focused ? 'person' : 'person-outline';
-          } else {
-            iconName = 'help-circle-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -94,31 +105,81 @@ const DrawerNavigator = () => {
 };
 
 const AppNavigator = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('Auth');
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = await getAuthToken();
+        if (token) {
+          const decoded: any = jwtDecode(token);
+          // Check expiration
+          if (decoded.exp * 1000 < Date.now()) {
+            setInitialRoute('Auth');
+          } else if (decoded.is_onboarded) {
+            setInitialRoute('App');
+          } else {
+            setInitialRoute('Onboarding');
+          }
+        } else {
+          setInitialRoute('Auth');
+        }
+      } catch (error) {
+        console.error("Auth Check Error:", error);
+        setInitialRoute('Auth');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
-      <Stack.Navigator
+      <RootStack.Navigator
+        initialRouteName={initialRoute}
         screenOptions={({ navigation }) => ({
           headerTintColor: COLORS.primary,
           headerTitleStyle: { fontWeight: 'bold' },
           headerRight: () => <HomeHeaderRight navigation={navigation} />,
         })}
       >
-        <Stack.Screen 
-          name="DrawerRoot" 
+        <RootStack.Screen 
+          name="Auth" 
+          component={AuthNavigator} 
+          options={{ headerShown: false }} 
+        />
+        <RootStack.Screen 
+          name="Onboarding" 
+          component={ProfileSetupScreen} 
+          options={{ headerShown: false }} 
+        />
+        <RootStack.Screen 
+          name="App" 
           component={DrawerNavigator} 
           options={{ headerShown: false }} 
         />
-        <Stack.Screen 
+        <RootStack.Screen 
           name="CourseDetail" 
           component={CourseDetailScreen} 
-          options={{ headerShown: false }} // Hidden because CourseDetail has custom header
+          options={{ headerShown: false }} 
         />
-        <Stack.Screen 
+        <RootStack.Screen 
           name="VideoPlayer" 
           component={VideoPlayerScreen} 
           options={{ title: 'Learning Player' }} 
         />
-      </Stack.Navigator>
+      </RootStack.Navigator>
     </NavigationContainer>
   );
 };

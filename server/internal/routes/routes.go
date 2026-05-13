@@ -29,11 +29,14 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	
 	// Auth Routes
 	auth := api.Group("/auth")
-	auth.Post("/register", authHandler.Register)
-	auth.Post("/login", authHandler.Login)
+	auth.Post("/request-otp", authHandler.RequestOTP)
+	auth.Post("/verify-otp", authHandler.VerifyOTP)
 
 	// Protected Routes
 	protected := api.Group("/", middleware.JWTMiddleware())
+
+	// Onboarding Route
+	protected.Put("/auth/onboard", authHandler.Onboard)
 
 	// Course Routes
 	protected.Get("/courses", courseHandler.GetCatalog)

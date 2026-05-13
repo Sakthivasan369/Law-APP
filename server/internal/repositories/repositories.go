@@ -10,6 +10,7 @@ type UserRepository interface {
 	Create(user *models.User) error
 	FindByEmail(email string) (*models.User, error)
 	FindByID(id uuid.UUID) (*models.User, error)
+	Update(user *models.User) error
 	UpdateWallet(id uuid.UUID, amount float64) error
 }
 
@@ -52,6 +53,10 @@ func (r *postgresRepository) FindByID(id uuid.UUID) (*models.User, error) {
 	var user models.User
 	err := r.db.First(&user, id).Error
 	return &user, err
+}
+
+func (r *postgresRepository) Update(user *models.User) error {
+	return r.db.Save(user).Error
 }
 
 func (r *postgresRepository) UpdateWallet(id uuid.UUID, amount float64) error {

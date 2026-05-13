@@ -13,10 +13,16 @@ $$ language 'plpgsql';
 -- Users Table
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
+    otp_code VARCHAR(10),
+    otp_expires_at TIMESTAMPTZ,
+    is_onboarded BOOLEAN DEFAULT FALSE,
+    name VARCHAR(255),
+    age INTEGER,
+    occupation VARCHAR(255),
+    interests JSONB,
     wallet_balance DECIMAL(12, 2) DEFAULT 0.00,
+    role VARCHAR(50) DEFAULT 'student',
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

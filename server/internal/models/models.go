@@ -8,14 +8,19 @@ import (
 )
 
 type User struct {
-	ID           uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
-	Name         string    `gorm:"not null" json:"name"`
-	Email        string    `gorm:"uniqueIndex;not null" json:"email"`
-	PasswordHash string    `gorm:"not null" json:"-"`
-	WalletBalance float64  `gorm:"default:0.0" json:"wallet_balance"`
-	Role         string    `gorm:"default:'student'" json:"role"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID            uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
+	Email         string    `gorm:"uniqueIndex;not null" json:"email"`
+	OTPCode       string    `json:"-"`
+	OTPExpiresAt  time.Time `json:"-"`
+	IsOnboarded   bool      `gorm:"default:false" json:"is_onboarded"`
+	Name          string    `json:"name"`
+	Age           int       `json:"age"`
+	Occupation    string    `json:"occupation"`
+	Interests     string    `gorm:"type:jsonb" json:"interests"` // Store as JSON string or array, using jsonb in postgres
+	WalletBalance float64   `gorm:"default:0.0" json:"wallet_balance"`
+	Role          string    `gorm:"default:'student'" json:"role"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type Course struct {

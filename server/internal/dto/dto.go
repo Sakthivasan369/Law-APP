@@ -1,14 +1,19 @@
 package dto
 
-type RegisterRequest struct {
-	Name     string `json:"name" validate:"required,min=2,max=100"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6"`
+type RequestOTPRequest struct {
+	Email string `json:"email" validate:"required,email"`
 }
 
-type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+type VerifyOTPRequest struct {
+	Email string `json:"email" validate:"required,email"`
+	Code  string `json:"code" validate:"required,len=6"`
+}
+
+type OnboardRequest struct {
+	Name       string   `json:"name" validate:"required,min=2,max=100"`
+	Age        int      `json:"age" validate:"required,min=10,max=100"`
+	Occupation string   `json:"occupation" validate:"required"`
+	Interests  []string `json:"interests" validate:"required,min=1"`
 }
 
 type WatchProgressRequest struct {
