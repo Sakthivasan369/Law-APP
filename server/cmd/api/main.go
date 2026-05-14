@@ -18,9 +18,19 @@ import (
 )
 
 func main() {
-	// Load environment variables
-	if err := godotenv.Load(); err != nil {
-		log.Println("Warning: .env file not found, using system environment variables")
+	// Load environment variables from possible locations
+	envFiles := []string{".env", "../.env", "../../.env"}
+	envLoaded := false
+	for _, f := range envFiles {
+		if err := godotenv.Load(f); err == nil {
+			log.Printf("Loaded environment variables from %s", f)
+			envLoaded = true
+			break
+		}
+	}
+
+	if !envLoaded {
+		log.Println("Warning: .env file not found in searched locations, using system environment variables")
 	}
 
 	// Initialize Database
