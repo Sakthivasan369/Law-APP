@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"log"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -15,28 +17,64 @@ type AuthHandler struct {
 }
 
 func NewAuthHandler(service services.AuthService) *AuthHandler {
-	return &AuthHandler{service: service, validator: validator.New()}
+	return &AuthHandler{
+		service:   service,
+		validator: validator.New(),
+	}
 }
 
 func (h *AuthHandler) RequestOTP(c *fiber.Ctx) error {
+	log.Println("REQUEST HIT")
+
 	req := new(dto.RequestOTPRequest)
+
+	log.Println("STEP 1 - BEFORE BODY PARSE")
+
 	if err := c.BodyParser(req); err != nil {
-		return utils.ErrorResponse(c, fiber.StatusBadRequest, "invalid_request_payload")
+		log.Println("BODY PARSE FAILED:", err)
+
+		return utils.ErrorResponse(
+			c,
+			fiber.StatusBadRequest,
+			"invalid_request_payload",
+		)
 	}
+
+	log.Println("STEP 2 - BODY PARSED")
+	log.Println("EMAIL:", req.Email)
 
 	if err := h.validator.Struct(req); err != nil {
-		return utils.ErrorResponse(c, fiber.StatusBadRequest, err.Error())
+		log.Println("VALIDATION FAILED:", err)
+
+		return utils.ErrorResponse(
+			c,
+			fiber.StatusBadRequest,
+			err.Error(),
+		)
 	}
+
+	log.Println("STEP 3 - VALIDATION PASSED")
 
 	if err := h.service.RequestOTP(req.Email); err != nil {
-		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "failed_to_request_otp")
+		log.Println("SERVICE ERROR:", err)
+
+		return utils.ErrorResponse(
+			c,
+			fiber.StatusInternalServerError,
+			"failed_to_request_otp",
+		)
 	}
 
-	return utils.SuccessResponse(c, fiber.Map{"message": "OTP sent successfully"})
+	log.Println("STEP 4 - OTP SUCCESS")
+
+	return utils.SuccessResponse(c, fiber.Map{
+		"message": "OTP sent successfully",
+	})
 }
 
 func (h *AuthHandler) VerifyOTP(c *fiber.Ctx) error {
 	req := new(dto.VerifyOTPRequest)
+
 	if err := c.BodyParser(req); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, "invalid_request_payload")
 	}
@@ -50,20 +88,21 @@ func (h *AuthHandler) VerifyOTP(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusUnauthorized, err.Error())
 	}
 
-	// Parse token to get is_onboarded for response (optional, but helpful for client)
-	// We'll just return the token and the client can decode it, or we can fetch the user.
-	// For simplicity, just returning the token here.
-	return utils.SuccessResponse(c, fiber.Map{"token": token})
+	return utils.SuccessResponse(c, fiber.Map{
+		"token": token,
+	})
 }
 
 func (h *AuthHandler) Onboard(c *fiber.Ctx) error {
 	userIDStr := c.Locals("user_id").(string)
+
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "invalid_user")
 	}
 
 	req := new(dto.OnboardRequest)
+
 	if err := c.BodyParser(req); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, "invalid_request_payload")
 	}

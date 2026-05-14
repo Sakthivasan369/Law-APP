@@ -16,7 +16,7 @@ type User struct {
 	Name          string    `json:"name"`
 	Age           int       `json:"age"`
 	Occupation    string    `json:"occupation"`
-	Interests     string    `gorm:"type:jsonb" json:"interests"` // Store as JSON string or array, using jsonb in postgres
+	Interests     string    `gorm:"type:jsonb;default:'[]'" json:"interests"` // Store as JSON string or array, using jsonb in postgres
 	WalletBalance float64   `gorm:"default:0.0" json:"wallet_balance"`
 	Role          string    `gorm:"default:'student'" json:"role"`
 	CreatedAt     time.Time `json:"created_at"`

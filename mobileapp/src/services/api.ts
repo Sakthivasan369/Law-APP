@@ -36,6 +36,9 @@ export const removeAuthToken = async () => {
  * Example fetch wrapper with Auth
  */
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
   try {
     const token = await getAuthToken();
     const headers: any = {
@@ -50,6 +53,7 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
     const response = await fetch(endpoint, {
       ...options,
       headers,
+      signal: controller.signal,
     });
 
     const result = await response.json();
@@ -59,8 +63,14 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
     }
 
     return result;
-  } catch (error) {
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      console.error(`[API Timeout] ${endpoint}: Request timed out after 15s`);
+      throw new Error('Request timed out. Please check your connection and try again.');
+    }
     console.error(`[API Error] ${endpoint}:`, error);
     throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
 };
