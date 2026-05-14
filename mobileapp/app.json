@@ -39,7 +39,9 @@
             "kotlinVersion": "2.0.21"
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-font"
     ]
   }
 }
