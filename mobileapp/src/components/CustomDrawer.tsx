@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -6,24 +6,32 @@ import {
   Image,
   TouchableOpacity,
   Switch,
-  ScrollView,
 } from 'react-native';
-import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
-import { COLORS, BORDER_RADIUS, SPACING, SHADOWS } from '../constants/theme';
+import { BORDER_RADIUS, SPACING, SHADOWS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
+import { useUser } from '../context/UserContext';
 
 const CustomDrawer = (props: any) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode, toggleTheme, colors } = useTheme();
+  const { user } = useUser();
 
   const menuItems = [
     { icon: 'book-outline', label: 'Test Series', type: 'Ionicons' },
     { icon: 'list-alt', label: 'My Test', type: 'MaterialIcons' },
-    { icon: 'share-social-outline', label: 'Refer & Earn', type: 'Ionicons' },
+    { icon: 'share-social-outline', label: 'Refer & Earn', type: 'Ionicons', route: 'ReferAndEarn' },
     { icon: 'help-circle-outline', label: 'Help & Support', type: 'Ionicons' },
   ];
 
+  const handleMenuPress = (item: typeof menuItems[0]) => {
+    if (item.route) {
+      props.navigation.navigate(item.route);
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerContent}>
         {/* Profile Header Section */}
         <TouchableOpacity 
@@ -32,64 +40,70 @@ const CustomDrawer = (props: any) => {
         >
           <Image
             source={{ uri: 'https://i.pravatar.cc/150?u=sakthi' }}
-            style={styles.avatar}
+            style={[styles.avatar, { borderColor: colors.primary }]}
           />
           <View style={styles.profileInfo}>
-            <Text style={styles.userName}>Hi, SAKTHIVASAN</Text>
-            <Text style={styles.viewProfile}>View profile</Text>
+            <Text style={[styles.userName, { color: colors.textPrimary }]}>
+              Hi, {user?.name?.split(' ')[0]?.toUpperCase() || 'USER'}
+            </Text>
+            <Text style={[styles.viewProfile, { color: colors.primary }]}>View profile</Text>
           </View>
         </TouchableOpacity>
 
         {/* Highlighted My Purchases Card */}
-        <TouchableOpacity style={styles.highlightedCard}>
+        <TouchableOpacity style={[styles.highlightedCard, { backgroundColor: colors.highlightBg }]}>
           <View style={styles.highlightedContent}>
-            <MaterialIcons name="shopping-bag" size={24} color={COLORS.primary} />
-            <Text style={styles.highlightedText}>My Purchases</Text>
+            <MaterialIcons name="shopping-bag" size={24} color={colors.primary} />
+            <Text style={[styles.highlightedText, { color: colors.textPrimary }]}>My Purchases</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={COLORS.textDisabled} />
+          <Ionicons name="chevron-forward" size={20} color={colors.textDisabled} />
         </TouchableOpacity>
 
         {/* Menu List */}
         <View style={styles.menuList}>
           {menuItems.map((item, index) => (
-            <TouchableOpacity key={index} style={styles.menuItem}>
+            <TouchableOpacity
+              key={index}
+              style={[styles.menuItem, { borderBottomColor: colors.divider }]}
+              onPress={() => handleMenuPress(item)}
+            >
               <View style={styles.menuItemLeft}>
                 {item.type === 'Ionicons' ? (
-                  <Ionicons name={item.icon as any} size={22} color={COLORS.textPrimary} />
+                  <Ionicons name={item.icon as any} size={22} color={colors.textPrimary} />
                 ) : (
-                  <MaterialIcons name={item.icon as any} size={22} color={COLORS.textPrimary} />
+                  <MaterialIcons name={item.icon as any} size={22} color={colors.textPrimary} />
                 )}
-                <Text style={styles.menuLabel}>{item.label}</Text>
+                <Text style={[styles.menuLabel, { color: colors.textPrimary }]}>{item.label}</Text>
               </View>
             </TouchableOpacity>
           ))}
 
           {/* Dark Mode Toggle */}
-          <View style={styles.menuItem}>
+          <View style={[styles.menuItem, { borderBottomColor: colors.divider }]}>
             <View style={styles.menuItemLeft}>
-              <Feather name="moon" size={22} color={COLORS.textPrimary} />
-              <Text style={styles.menuLabel}>Dark Mode</Text>
+              <Feather name="moon" size={22} color={colors.textPrimary} />
+              <Text style={[styles.menuLabel, { color: colors.textPrimary }]}>Dark Mode</Text>
             </View>
             <Switch
               value={isDarkMode}
-              onValueChange={setIsDarkMode}
-              trackColor={{ false: '#767577', true: COLORS.primary }}
-              thumbColor={isDarkMode ? COLORS.white : '#f4f3f4'}
+              onValueChange={toggleTheme}
+              trackColor={{ false: colors.switchTrackOff, true: colors.primary }}
+              thumbColor={isDarkMode ? colors.white : colors.switchThumbOff}
             />
           </View>
         </View>
       </DrawerContentScrollView>
 
       {/* Footer Section */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { borderTopColor: colors.divider }]}>
         <TouchableOpacity style={styles.logoutButton}>
-          <MaterialIcons name="logout" size={22} color={COLORS.error} />
-          <Text style={styles.logoutText}>Logout</Text>
+          <MaterialIcons name="logout" size={22} color={colors.error} />
+          <Text style={[styles.logoutText, { color: colors.error }]}>Logout</Text>
         </TouchableOpacity>
         
         <View style={styles.footerInfo}>
-          <Text style={styles.versionText}>App Version: 1.0.0</Text>
-          <Text style={styles.madeWithText}>Made with ❤️ in India</Text>
+          <Text style={[styles.versionText, { color: colors.textDisabled }]}>App Version: 1.0.0</Text>
+          <Text style={[styles.madeWithText, { color: colors.textDisabled }]}>Made with ❤️ in India</Text>
         </View>
       </View>
     </View>
@@ -114,7 +128,6 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 2,
-    borderColor: COLORS.primary,
   },
   profileInfo: {
     marginLeft: SPACING.md,
@@ -122,18 +135,15 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.textPrimary,
   },
   viewProfile: {
     fontSize: 14,
-    color: COLORS.primary,
     marginTop: 2,
   },
   highlightedCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F3F4F6',
     marginHorizontal: SPACING.md,
     padding: SPACING.md,
     borderRadius: BORDER_RADIUS.lg,
@@ -146,7 +156,6 @@ const styles = StyleSheet.create({
   highlightedText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.textPrimary,
     marginLeft: SPACING.sm,
   },
   menuList: {
@@ -158,7 +167,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
   },
   menuItemLeft: {
     flexDirection: 'row',
@@ -166,14 +174,12 @@ const styles = StyleSheet.create({
   },
   menuLabel: {
     fontSize: 15,
-    color: COLORS.textPrimary,
     marginLeft: 15,
     fontWeight: '500',
   },
   footer: {
     padding: SPACING.md,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
     paddingBottom: 40,
   },
   logoutButton: {
@@ -183,7 +189,6 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     fontSize: 16,
-    color: COLORS.error,
     fontWeight: 'bold',
     marginLeft: 10,
   },
@@ -192,11 +197,9 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: 12,
-    color: COLORS.textDisabled,
   },
   madeWithText: {
     fontSize: 12,
-    color: COLORS.textDisabled,
     marginTop: 4,
   },
 });

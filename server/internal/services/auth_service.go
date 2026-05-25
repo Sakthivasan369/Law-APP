@@ -25,6 +25,7 @@ type AuthService interface {
 	RequestOTP(email string) error
 	VerifyOTP(email, code string) (string, error)
 	Onboard(userID uuid.UUID, req *dto.OnboardRequest) (*models.User, error)
+	GetMe(userID uuid.UUID) (*models.User, error)
 }
 
 type authService struct {
@@ -39,6 +40,17 @@ func generateOTP() string {
 	b := make([]byte, 3)
 	_, _ = rand.Read(b)
 	return fmt.Sprintf("%06d", int(b[0])<<16|int(b[1])<<8|int(b[2]))[:6]
+}
+
+// generateReferralCode creates a random 6-character alphanumeric code.
+func generateReferralCode() string {
+	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, 6)
+	_, _ = rand.Read(b)
+	for i := range b {
+		b[i] = charset[int(b[i])%len(charset)]
+	}
+	return string(b)
 }
 
 // sendOTPEmailWithTimeout sends an OTP email with a context-based timeout
@@ -154,8 +166,9 @@ func (s *authService) RequestOTP(email string) error {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			user = &models.User{
-				Email:     email,
-				Interests: "[]",
+				Email:        email,
+				Interests:    "[]",
+				ReferralCode: generateReferralCode(),
 			}
 			if err := s.repo.Create(user); err != nil {
 				return err
@@ -240,5 +253,13 @@ func (s *authService) Onboard(userID uuid.UUID, req *dto.OnboardRequest) (*model
 		return nil, err
 	}
 
+	return user, nil
+}
+
+func (s *authService) GetMe(userID uuid.UUID) (*models.User, error) {
+	user, err := s.repo.FindByID(userID)
+	if err != nil {
+		return nil, errors.New("user_not_found")
+	}
 	return user, nil
 }

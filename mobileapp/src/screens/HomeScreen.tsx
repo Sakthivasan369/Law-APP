@@ -10,11 +10,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
-import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
+import { SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import { MOCK_COURSES, CATEGORIES } from '../constants/mockData';
 import CourseCard from '../components/CourseCard';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { useUser } from '../context/UserContext';
+import { useTheme } from '../context/ThemeContext';
 
 type HomeScreenNavigationProp = DrawerNavigationProp<any>;
 
@@ -26,6 +28,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const { user } = useUser();
+  const { colors } = useTheme();
 
   const filteredCourses = MOCK_COURSES.filter(course => {
     const matchesCategory = selectedCategory === 'All' || course.category === selectedCategory;
@@ -34,33 +38,35 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   });
 
   const renderCustomHeader = () => (
-    <View style={[styles.customHeader, { paddingTop: Math.max(insets.top, 10) }]}>
+    <View style={[styles.customHeader, { paddingTop: Math.max(insets.top, 10), backgroundColor: colors.card }]}>
       <TouchableOpacity 
         style={styles.menuIcon} 
         onPress={() => (navigation as any).openDrawer()}
       >
-        <Feather name="menu" size={24} color={COLORS.textPrimary} />
+        <Feather name="menu" size={24} color={colors.textPrimary} />
       </TouchableOpacity>
       
       <View style={styles.searchBarWrapper}>
-        <View style={styles.pillSearchBar}>
-          <Ionicons name="search" size={18} color={COLORS.textSecondary} style={styles.searchIcon} />
+        <View style={[styles.pillSearchBar, { backgroundColor: colors.highlightBg }]}>
+          <Ionicons name="search" size={18} color={colors.textSecondary} style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.textPrimary }]}
             placeholder="Search for courses..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholderTextColor={COLORS.textDisabled}
+            placeholderTextColor={colors.textDisabled}
           />
         </View>
       </View>
     </View>
   );
 
+  const displayName = user?.name?.split(' ')[0]?.toUpperCase() || 'USER';
+
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text style={styles.welcomeText}>Hello, SAKTHIVASAN!</Text>
-      <Text style={styles.subText}>What would you like to learn today?</Text>
+      <Text style={[styles.welcomeText, { color: colors.primary }]}>Hello, {displayName}!</Text>
+      <Text style={[styles.subText, { color: colors.textSecondary }]}>What would you like to learn today?</Text>
 
       <ScrollView 
         horizontal 
@@ -73,13 +79,15 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             key={category}
             style={[
               styles.categoryChip,
-              selectedCategory === category && styles.categoryChipActive
+              { backgroundColor: colors.highlightBg },
+              selectedCategory === category && { backgroundColor: colors.primary, borderColor: colors.primary }
             ]}
             onPress={() => setSelectedCategory(category)}
           >
             <Text style={[
               styles.categoryText,
-              selectedCategory === category && styles.categoryTextActive
+              { color: colors.textSecondary },
+              selectedCategory === category && { color: colors.white }
             ]}>
               {category}
             </Text>
@@ -90,7 +98,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {renderCustomHeader()}
       <FlatList
         data={filteredCourses}
@@ -112,14 +120,12 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   customHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
-    backgroundColor: COLORS.white,
   },
   menuIcon: {
     padding: SPACING.xs,
@@ -131,7 +137,6 @@ const styles = StyleSheet.create({
   pillSearchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
     borderRadius: BORDER_RADIUS.full,
     height: 44,
     paddingHorizontal: SPACING.md,
@@ -142,7 +147,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: COLORS.textPrimary,
     height: '100%',
   },
   listContent: {
@@ -155,11 +159,9 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.primary,
   },
   subText: {
     fontSize: 14,
-    color: COLORS.textSecondary,
     marginTop: 4,
   },
   categoryContainer: {
@@ -173,22 +175,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: BORDER_RADIUS.full,
-    backgroundColor: '#F3F4F6',
     marginRight: 8,
     borderWidth: 1,
     borderColor: 'transparent',
   },
-  categoryChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
   categoryText: {
     fontSize: 14,
-    color: COLORS.textSecondary,
     fontWeight: '500',
-  },
-  categoryTextActive: {
-    color: COLORS.white,
   },
 });
 

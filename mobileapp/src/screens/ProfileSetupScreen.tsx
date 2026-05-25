@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
-import { COLORS, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { SPACING, BORDER_RADIUS } from '../constants/theme';
 import { apiRequest, API_ENDPOINTS, setAuthToken } from '../services/api';
 import PrimaryButton from '../components/PrimaryButton';
-import { jwtDecode } from 'jwt-decode';
+import { useUser } from '../context/UserContext';
+import { useTheme } from '../context/ThemeContext';
 
 const INTEREST_OPTIONS = [
   'IPC', 'Civil Law', 'Constitution', 'Criminal Law', 'Corporate Law', 'Family Law'
@@ -16,6 +17,8 @@ const ProfileSetupScreen = ({ navigation }: any) => {
   const [interests, setInterests] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { fetchUserProfile } = useUser();
+  const { colors } = useTheme();
 
   const toggleInterest = (interest: string) => {
     if (interests.includes(interest)) {
@@ -46,6 +49,9 @@ const ProfileSetupScreen = ({ navigation }: any) => {
         }),
       });
 
+      // Fetch updated user profile after onboarding
+      await fetchUserProfile();
+
       // Navigation replace because we don't want them to go back to onboarding
       navigation.replace('App');
     } catch (err: any) {
@@ -56,42 +62,73 @@ const ProfileSetupScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Complete Your Profile</Text>
-        <Text style={styles.subtitle}>Help us personalize your learning experience</Text>
+        <Text style={[styles.title, { color: colors.primary }]}>Complete Your Profile</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Help us personalize your learning experience</Text>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput style={styles.input} placeholder="e.g. SAKTHIVASAN" value={name} onChangeText={setName} />
+          <Text style={[styles.label, { color: colors.textPrimary }]}>Full Name</Text>
+          <TextInput
+            style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.textPrimary }]}
+            placeholder="e.g. SAKTHIVASAN"
+            placeholderTextColor={colors.textDisabled}
+            value={name}
+            onChangeText={setName}
+          />
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Age</Text>
-          <TextInput style={styles.input} placeholder="e.g. 21" value={age} onChangeText={setAge} keyboardType="numeric" />
+          <Text style={[styles.label, { color: colors.textPrimary }]}>Age</Text>
+          <TextInput
+            style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.textPrimary }]}
+            placeholder="e.g. 21"
+            placeholderTextColor={colors.textDisabled}
+            value={age}
+            onChangeText={setAge}
+            keyboardType="numeric"
+          />
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Occupation</Text>
-          <TextInput style={styles.input} placeholder="e.g. Law Student, Advocate" value={occupation} onChangeText={setOccupation} />
+          <Text style={[styles.label, { color: colors.textPrimary }]}>Occupation</Text>
+          <TextInput
+            style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.textPrimary }]}
+            placeholder="e.g. Law Student, Advocate"
+            placeholderTextColor={colors.textDisabled}
+            value={occupation}
+            onChangeText={setOccupation}
+          />
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Interests (Select multiple)</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>Interests (Select multiple)</Text>
           <View style={styles.chipContainer}>
             {INTEREST_OPTIONS.map((item) => (
               <TouchableOpacity
                 key={item}
-                style={[styles.chip, interests.includes(item) && styles.chipActive]}
+                style={[
+                  styles.chip,
+                  { borderColor: colors.border, backgroundColor: colors.surface },
+                  interests.includes(item) && { backgroundColor: colors.primary, borderColor: colors.primary },
+                ]}
                 onPress={() => toggleInterest(item)}
               >
-                <Text style={[styles.chipText, interests.includes(item) && styles.chipTextActive]}>{item}</Text>
+                <Text
+                  style={[
+                    styles.chipText,
+                    { color: colors.textSecondary },
+                    interests.includes(item) && { color: colors.white, fontWeight: '600' },
+                  ]}
+                >
+                  {item}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {error ? <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text> : null}
 
         <PrimaryButton 
           title="Start Learning" 
@@ -107,7 +144,6 @@ const ProfileSetupScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
   },
   content: {
     padding: SPACING.xl,
@@ -116,12 +152,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: COLORS.primary,
     marginBottom: SPACING.sm,
   },
   subtitle: {
     fontSize: 15,
-    color: COLORS.textSecondary,
     marginBottom: SPACING.xl,
   },
   inputGroup: {
@@ -130,17 +164,13 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.textPrimary,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: BORDER_RADIUS.md,
     paddingHorizontal: SPACING.md,
     height: 50,
-    backgroundColor: '#F9FAFB',
-    color: COLORS.textPrimary,
   },
   chipContainer: {
     flexDirection: 'row',
@@ -149,26 +179,14 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: BORDER_RADIUS.full,
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: '#F9FAFB',
-  },
-  chipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
   },
   chipText: {
-    color: COLORS.textSecondary,
     fontSize: 14,
   },
-  chipTextActive: {
-    color: COLORS.white,
-    fontWeight: '600',
-  },
   errorText: {
-    color: COLORS.error,
     marginBottom: SPACING.md,
     fontSize: 14,
     textAlign: 'center',

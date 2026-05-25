@@ -1,46 +1,48 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
-import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
+import { SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import { USER_DATA } from '../constants/mockData';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { useTheme } from '../context/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const MyCoursesScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors } = useTheme();
 
   const renderEnrolledItem = ({ item }: { item: typeof USER_DATA.enrolledCourses[0] }) => (
     <TouchableOpacity 
-      style={styles.courseCard}
+      style={[styles.courseCard, { backgroundColor: colors.card }]}
       onPress={() => navigation.navigate('CourseDetail', { courseId: item.id })}
     >
       <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
       <View style={styles.infoContainer}>
-        <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
-        <Text style={styles.instructor}>Adv. Rajesh Kumar</Text>
+        <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={2}>{item.title}</Text>
+        <Text style={[styles.instructor, { color: colors.textSecondary }]}>Adv. Rajesh Kumar</Text>
         
         <View style={styles.progressSection}>
-          <View style={styles.progressBarBackground}>
-            <View style={[styles.progressBarFill, { width: `${item.progress * 100}%` }]} />
+          <View style={[styles.progressBarBackground, { backgroundColor: colors.highlightBg }]}>
+            <View style={[styles.progressBarFill, { width: `${item.progress * 100}%`, backgroundColor: colors.success }]} />
           </View>
-          <Text style={styles.progressText}>{Math.round(item.progress * 100)}% Completed</Text>
+          <Text style={[styles.progressText, { color: colors.textSecondary }]}>{Math.round(item.progress * 100)}% Completed</Text>
         </View>
 
         <TouchableOpacity 
-          style={styles.continueButton}
+          style={[styles.continueButton, { backgroundColor: colors.primary }]}
           onPress={() => navigation.navigate('VideoPlayer', { courseId: item.id, lessonId: 'l1' })}
         >
-          <Text style={styles.continueText}>Continue Learning</Text>
+          <Text style={[styles.continueText, { color: colors.white }]}>Continue Learning</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.headerTitle}>My Enrolled Courses</Text>
+    <View style={[styles.container, { backgroundColor: colors.surface }]}>
+      <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>My Enrolled Courses</Text>
       <FlatList
         data={USER_DATA.enrolledCourses}
         keyExtractor={item => item.id}
@@ -55,13 +57,11 @@ const MyCoursesScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
     padding: SPACING.md,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: COLORS.textPrimary,
     marginBottom: SPACING.lg,
     marginTop: SPACING.md,
   },
@@ -70,7 +70,6 @@ const styles = StyleSheet.create({
   },
   courseCard: {
     flexDirection: 'row',
-    backgroundColor: COLORS.white,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.sm,
     marginBottom: SPACING.md,
@@ -90,11 +89,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.textPrimary,
   },
   instructor: {
     fontSize: 12,
-    color: COLORS.textSecondary,
     marginTop: 2,
   },
   progressSection: {
@@ -102,28 +99,23 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 4,
-    backgroundColor: '#F3F4F6',
     borderRadius: 2,
   },
   progressBarFill: {
     height: 4,
-    backgroundColor: COLORS.success,
     borderRadius: 2,
   },
   progressText: {
     fontSize: 10,
-    color: COLORS.textSecondary,
     marginTop: 4,
   },
   continueButton: {
     marginTop: 12,
-    backgroundColor: COLORS.primary,
     paddingVertical: 6,
     borderRadius: BORDER_RADIUS.sm,
     alignItems: 'center',
   },
   continueText: {
-    color: COLORS.white,
     fontSize: 12,
     fontWeight: '600',
   },

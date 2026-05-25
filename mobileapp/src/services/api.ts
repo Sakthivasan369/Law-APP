@@ -15,9 +15,11 @@ export const API_ENDPOINTS = {
   REQUEST_OTP: `${BASE_URL}/api/auth/request-otp`,
   VERIFY_OTP: `${BASE_URL}/api/auth/verify-otp`,
   ONBOARD: `${BASE_URL}/api/auth/onboard`,
+  ME: `${BASE_URL}/api/auth/me`,
   COURSES: `${BASE_URL}/api/courses`,
   STREAM: (id: string) => `${BASE_URL}/api/videos/${id}/stream`,
   PROGRESS: `${BASE_URL}/api/watch/progress`,
+  REDEEM_REFERRAL: `${BASE_URL}/api/referral/redeem`,
 };
 
 export const setAuthToken = async (token: string) => {

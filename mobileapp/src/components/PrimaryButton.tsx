@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
-import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
+import { BORDER_RADIUS, SPACING } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 interface PrimaryButtonProps {
   title: string;
@@ -21,20 +22,22 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
   textStyle,
   variant = 'primary',
 }) => {
+  const { colors } = useTheme();
+
   const getBackgroundColor = () => {
-    if (disabled) return COLORS.textDisabled;
-    if (variant === 'secondary') return COLORS.secondary;
+    if (disabled) return colors.textDisabled;
+    if (variant === 'secondary') return colors.secondary;
     if (variant === 'outline') return 'transparent';
-    return COLORS.primary;
+    return colors.primary;
   };
 
   const getTextColor = () => {
-    if (variant === 'outline') return COLORS.primary;
-    return COLORS.white;
+    if (variant === 'outline') return colors.primary;
+    return colors.white;
   };
 
   const getBorderColor = () => {
-    if (variant === 'outline') return COLORS.primary;
+    if (variant === 'outline') return colors.primary;
     return 'transparent';
   };
 
@@ -54,7 +57,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
       activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator color={COLORS.white} />
+        <ActivityIndicator color={colors.white} />
       ) : (
         <Text style={[styles.text, { color: getTextColor() }, textStyle]}>{title}</Text>
       )}

@@ -11,18 +11,20 @@ import (
 
 func Setup(app *fiber.App, db *gorm.DB) {
 	// 1. Initialize Repositories
-	userRepo, courseRepo, videoRepo, watchRepo := repositories.NewPostgresRepository(db)
+	userRepo, courseRepo, videoRepo, watchRepo, walletRepo := repositories.NewPostgresRepository(db)
 
 	// 2. Initialize Services
 	authService := services.NewAuthService(userRepo)
 	courseService := services.NewCourseService(courseRepo)
 	watchService := services.NewWatchService(watchRepo, userRepo)
+	referralService := services.NewReferralService(userRepo, walletRepo)
 
 	// 3. Initialize Handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	courseHandler := handlers.NewCourseHandler(courseService)
 	watchHandler := handlers.NewWatchHandler(watchService)
 	videoHandler := handlers.NewVideoHandler(videoRepo)
+	referralHandler := handlers.NewReferralHandler(referralService)
 
 	// 4. Define Routes
 	api := app.Group("/api")
@@ -35,8 +37,9 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	// Protected Routes
 	protected := api.Group("/", middleware.JWTMiddleware())
 
-	// Onboarding Route
+	// Onboarding & Profile Routes
 	protected.Put("/auth/onboard", authHandler.Onboard)
+	protected.Get("/auth/me", authHandler.GetMe)
 
 	// Course Routes
 	protected.Get("/courses", courseHandler.GetCatalog)
@@ -47,4 +50,7 @@ func Setup(app *fiber.App, db *gorm.DB) {
 
 	// Video Streaming (Secure)
 	protected.Get("/videos/:id/stream", videoHandler.StreamVideo)
+
+	// Referral Routes
+	protected.Post("/referral/redeem", referralHandler.RedeemCode)
 }

@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { COLORS, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { SPACING, BORDER_RADIUS } from '../constants/theme';
 import { apiRequest, API_ENDPOINTS } from '../services/api';
 import PrimaryButton from '../components/PrimaryButton';
+import { useTheme } from '../context/ThemeContext';
 
 const EmailInputScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { colors } = useTheme();
 
   useEffect(() => {
     // Load last entered email
@@ -44,15 +46,16 @@ const EmailInputScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome to Sattam Ungal Kaiyil</Text>
-        <Text style={styles.subtitle}>Enter your email to continue</Text>
+        <Text style={[styles.title, { color: colors.primary }]}>Welcome to Sattam Ungal Kaiyil</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Enter your email to continue</Text>
 
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: colors.textPrimary }]}
             placeholder="sakthi@example.com"
+            placeholderTextColor={colors.textDisabled}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -61,7 +64,7 @@ const EmailInputScreen = ({ navigation }: any) => {
           />
         </View>
         
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {error ? <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text> : null}
 
         <PrimaryButton 
           title="Send OTP" 
@@ -77,7 +80,6 @@ const EmailInputScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
   },
   content: {
     padding: SPACING.xl,
@@ -87,29 +89,23 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: COLORS.primary,
     marginBottom: SPACING.sm,
   },
   subtitle: {
     fontSize: 16,
-    color: COLORS.textSecondary,
     marginBottom: SPACING.xl,
   },
   inputContainer: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: BORDER_RADIUS.md,
     paddingHorizontal: SPACING.md,
     height: 55,
     justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
   },
   input: {
     fontSize: 16,
-    color: COLORS.textPrimary,
   },
   errorText: {
-    color: COLORS.error,
     marginTop: SPACING.sm,
     fontSize: 14,
   },

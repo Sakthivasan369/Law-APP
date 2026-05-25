@@ -118,3 +118,19 @@ func (h *AuthHandler) Onboard(c *fiber.Ctx) error {
 
 	return utils.SuccessResponse(c, user)
 }
+
+func (h *AuthHandler) GetMe(c *fiber.Ctx) error {
+	userIDStr := c.Locals("user_id").(string)
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "invalid_user")
+	}
+
+	user, err := h.service.GetMe(userID)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+	}
+
+	return utils.SuccessResponse(c, user)
+}

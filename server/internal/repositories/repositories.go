@@ -10,6 +10,7 @@ type UserRepository interface {
 	Create(user *models.User) error
 	FindByEmail(email string) (*models.User, error)
 	FindByID(id uuid.UUID) (*models.User, error)
+	FindByReferralCode(code string) (*models.User, error)
 	Update(user *models.User) error
 	UpdateWallet(id uuid.UUID, amount float64) error
 }
@@ -29,13 +30,18 @@ type WatchHistoryRepository interface {
 	Get(userID, videoID uuid.UUID) (*models.WatchHistory, error)
 }
 
+type WalletTransactionRepository interface {
+	CreateTransaction(tx *models.WalletTransaction) error
+	GetByUserID(userID uuid.UUID) ([]models.WalletTransaction, error)
+}
+
 type postgresRepository struct {
 	db *gorm.DB
 }
 
-func NewPostgresRepository(db *gorm.DB) (UserRepository, CourseRepository, VideoRepository, WatchHistoryRepository) {
+func NewPostgresRepository(db *gorm.DB) (UserRepository, CourseRepository, VideoRepository, WatchHistoryRepository, WalletTransactionRepository) {
 	repo := &postgresRepository{db: db}
-	return repo, repo, repo, repo
+	return repo, repo, repo, repo, repo
 }
 
 // User Implementation
@@ -52,6 +58,12 @@ func (r *postgresRepository) FindByEmail(email string) (*models.User, error) {
 func (r *postgresRepository) FindByID(id uuid.UUID) (*models.User, error) {
 	var user models.User
 	err := r.db.First(&user, id).Error
+	return &user, err
+}
+
+func (r *postgresRepository) FindByReferralCode(code string) (*models.User, error) {
+	var user models.User
+	err := r.db.Where("referral_code = ?", code).First(&user).Error
 	return &user, err
 }
 
@@ -101,4 +113,15 @@ func (r *postgresRepository) Get(userID, videoID uuid.UUID) (*models.WatchHistor
 		return nil, nil
 	}
 	return &history, err
+}
+
+// WalletTransaction Implementation
+func (r *postgresRepository) CreateTransaction(tx *models.WalletTransaction) error {
+	return r.db.Create(tx).Error
+}
+
+func (r *postgresRepository) GetByUserID(userID uuid.UUID) ([]models.WalletTransaction, error) {
+	var transactions []models.WalletTransaction
+	err := r.db.Where("user_id = ?", userID).Order("created_at desc").Find(&transactions).Error
+	return transactions, err
 }

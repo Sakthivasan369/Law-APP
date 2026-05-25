@@ -14,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
 	"github.com/sakthivasan369/law-app/server/internal/database"
+	"github.com/sakthivasan369/law-app/server/internal/models"
 	"github.com/sakthivasan369/law-app/server/internal/routes"
 )
 
@@ -35,6 +36,42 @@ func main() {
 
 	// Initialize Database
 	db := database.NewPostgresConnection()
+
+	// Pre-migration: reconcile legacy PostgreSQL auto-named constraints to GORM
+	// naming conventions. Uses IF EXISTS so this is safe on both fresh and
+	// pre-existing databases.
+	preSQL := []string{
+		// Rename legacy unique constraint on users.email (PostgreSQL default name)
+		// to the name GORM's AutoMigrate expects: uni_users_email
+		`DO $$
+		BEGIN
+			IF EXISTS (
+				SELECT 1 FROM information_schema.table_constraints
+				WHERE constraint_name = 'users_email_key'
+				AND table_name = 'users'
+			) THEN
+				ALTER TABLE users RENAME CONSTRAINT users_email_key TO uni_users_email;
+			END IF;
+		END$$;`,
+	}
+	for _, sql := range preSQL {
+		if err := db.Exec(sql).Error; err != nil {
+			log.Fatalf("Pre-migration SQL failed: %v", err)
+		}
+	}
+	log.Println("Pre-migration constraint reconciliation completed")
+
+	// Auto-migrate all models (creates/updates tables and indexes)
+	if err := db.AutoMigrate(
+		&models.User{},
+		&models.Course{},
+		&models.Video{},
+		&models.WatchHistory{},
+		&models.WalletTransaction{},
+	); err != nil {
+		log.Fatalf("Failed to auto-migrate database: %v", err)
+	}
+	log.Println("Database auto-migration completed")
 
 	// Initialize Fiber App
 	app := fiber.New(fiber.Config{

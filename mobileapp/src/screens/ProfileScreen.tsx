@@ -5,77 +5,99 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
+import { Ionicons, Feather } from '@expo/vector-icons';
+import { SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
+import { useUser } from '../context/UserContext';
+import { useTheme } from '../context/ThemeContext';
 
 const ProfileScreen = ({ navigation }: any) => {
   const insets = useSafeAreaInsets();
+  const { user, isLoading } = useUser();
+  const { colors, isDarkMode } = useTheme();
+
   const renderDetailRow = (icon: any, label: string, value: string, showBorder = true) => (
-    <View style={[styles.detailRow, !showBorder && { borderBottomWidth: 0 }]}>
+    <View style={[styles.detailRow, !showBorder && { borderBottomWidth: 0 }, { borderBottomColor: colors.divider }]}>
       <View style={styles.detailLeft}>
-        <Ionicons name={icon} size={20} color={COLORS.textSecondary} style={styles.detailIcon} />
+        <Ionicons name={icon} size={20} color={colors.textSecondary} style={styles.detailIcon} />
         <View>
-          <Text style={styles.detailLabel}>{label}</Text>
-          <Text style={styles.detailValue}>{value}</Text>
+          <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>{label}</Text>
+          <Text style={[styles.detailValue, { color: colors.textPrimary }]}>{value}</Text>
         </View>
       </View>
     </View>
   );
 
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.surface }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading profile...</Text>
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.surface }]}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top, height: 60 + insets.top }]}>
+      <View style={[styles.header, { paddingTop: insets.top, height: 60 + insets.top, backgroundColor: colors.card }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Profile</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>My Profile</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* User Name Section */}
         <View style={styles.nameSection}>
-          <Text style={styles.fullName}>SAKTHIVASAN S</Text>
+          <Text style={[styles.fullName, { color: colors.textPrimary }]}>
+            {user?.name?.toUpperCase() || 'USER'}
+          </Text>
+          {/* Wallet Balance Badge */}
+          <View style={[styles.walletBadge, { backgroundColor: colors.primary + '15' }]}>
+            <Ionicons name="wallet-outline" size={16} color={colors.primary} />
+            <Text style={[styles.walletText, { color: colors.primary }]}>
+              ₹{user?.wallet_balance?.toFixed(2) || '0.00'}
+            </Text>
+          </View>
         </View>
 
         {/* Section 1: Your Details */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Your Details</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Your Details</Text>
         </View>
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: colors.card }]}>
           <TouchableOpacity style={styles.editIcon}>
-            <Feather name="edit-2" size={16} color={COLORS.primary} />
+            <Feather name="edit-2" size={16} color={colors.primary} />
           </TouchableOpacity>
-          {renderDetailRow('person-outline', 'Name', 'SAKTHIVASAN S')}
-          {renderDetailRow('mail-outline', 'Email', 'sakthivasan516@gmail.com')}
-          {renderDetailRow('call-outline', 'Phone', '9710288036', false)}
+          {renderDetailRow('person-outline', 'Name', user?.name || '—')}
+          {renderDetailRow('mail-outline', 'Email', user?.email || '—')}
+          {renderDetailRow('briefcase-outline', 'Occupation', user?.occupation || '—', false)}
         </View>
 
         {/* Section 2: Other Details */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Other Details</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Other Details</Text>
         </View>
-        <View style={styles.card}>
-          {renderDetailRow('school-outline', 'Exam', 'GATE')}
-          {renderDetailRow('layers-outline', 'Class', 'Post Graduate')}
-          {renderDetailRow('terminal-outline', 'Stream', 'Data Science & AI - GATE')}
-          {renderDetailRow('location-outline', 'City', 'Chennai')}
-          {renderDetailRow('map-outline', 'State', 'Tamil Nadu', false)}
+        <View style={[styles.card, { backgroundColor: colors.card }]}>
+          {renderDetailRow('calendar-outline', 'Age', user?.age ? String(user.age) : '—')}
+          {renderDetailRow('ribbon-outline', 'Role', user?.role || '—')}
+          {renderDetailRow('code-outline', 'Referral Code', user?.referral_code || '—', false)}
         </View>
 
         {/* Section 3: Settings */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Settings</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Settings</Text>
         </View>
-        <TouchableOpacity style={styles.settingsRow}>
+        <TouchableOpacity style={[styles.settingsRow, { backgroundColor: colors.card }]}>
           <View style={styles.settingsLeft}>
-            <Ionicons name="settings-outline" size={20} color={COLORS.textPrimary} />
-            <Text style={styles.settingsLabel}>Additional Settings</Text>
+            <Ionicons name="settings-outline" size={20} color={colors.textPrimary} />
+            <Text style={[styles.settingsLabel, { color: colors.textPrimary }]}>Additional Settings</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={COLORS.textDisabled} />
+          <Ionicons name="chevron-forward" size={20} color={colors.textDisabled} />
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -85,7 +107,14 @@ const ProfileScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
   },
   header: {
     flexDirection: 'row',
@@ -93,7 +122,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.md,
     height: 60,
-    backgroundColor: COLORS.white,
   },
   backButton: {
     padding: 8,
@@ -101,7 +129,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.textPrimary,
   },
   scrollContent: {
     padding: SPACING.md,
@@ -114,7 +141,19 @@ const styles = StyleSheet.create({
   fullName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.textPrimary,
+  },
+  walletBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  walletText: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginLeft: 6,
   },
   sectionHeader: {
     marginBottom: SPACING.sm,
@@ -123,11 +162,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: COLORS.textSecondary,
     textTransform: 'uppercase',
   },
   card: {
-    backgroundColor: COLORS.white,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
     ...SHADOWS.soft,
@@ -145,7 +182,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
   },
   detailLeft: {
     flexDirection: 'row',
@@ -158,11 +194,9 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 12,
-    color: COLORS.textSecondary,
   },
   detailValue: {
     fontSize: 15,
-    color: COLORS.textPrimary,
     fontWeight: '500',
     marginTop: 2,
   },
@@ -170,7 +204,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: COLORS.white,
     padding: SPACING.md,
     borderRadius: BORDER_RADIUS.lg,
     ...SHADOWS.soft,
@@ -181,7 +214,6 @@ const styles = StyleSheet.create({
   },
   settingsLabel: {
     fontSize: 15,
-    color: COLORS.textPrimary,
     marginLeft: 15,
     fontWeight: '500',
   },

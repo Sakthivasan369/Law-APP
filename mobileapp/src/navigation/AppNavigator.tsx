@@ -4,10 +4,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../constants/theme';
 import { TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { jwtDecode } from 'jwt-decode';
 import { getAuthToken } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 // Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -16,6 +16,7 @@ import CartScreen from '../screens/CartScreen';
 import VideoPlayerScreen from '../screens/VideoPlayerScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import MyCoursesScreen from '../screens/MyCoursesScreen';
+import ReferAndEarnScreen from '../screens/ReferAndEarnScreen';
 import EmailInputScreen from '../screens/EmailInputScreen';
 import OTPScreen from '../screens/OTPScreen';
 import ProfileSetupScreen from '../screens/ProfileSetupScreen';
@@ -29,6 +30,7 @@ export type RootStackParamList = {
   App: undefined;
   CourseDetail: { courseId: string };
   VideoPlayer: { courseId: string; lessonId: string };
+  ReferAndEarn: undefined;
 };
 
 export type AuthStackParamList = {
@@ -48,16 +50,9 @@ const AuthNavigator = () => (
   </AuthStack.Navigator>
 );
 
-const HomeHeaderRight = ({ navigation }: any) => (
-  <TouchableOpacity 
-    onPress={() => navigation.navigate('HomeTab')}
-    style={{ marginRight: 15 }}
-  >
-    <Ionicons name="home-outline" size={24} color={COLORS.primary} />
-  </TouchableOpacity>
-);
-
 const TabNavigator = () => {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -76,8 +71,9 @@ const TabNavigator = () => {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textDisabled,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textDisabled,
+        tabBarStyle: { backgroundColor: colors.tabBarBg, borderTopColor: colors.divider },
         headerShown: false,
       })}
     >
@@ -107,6 +103,7 @@ const DrawerNavigator = () => {
 const AppNavigator = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('Auth');
+  const { colors } = useTheme();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -114,7 +111,6 @@ const AppNavigator = () => {
         const token = await getAuthToken();
         if (token) {
           const decoded: any = jwtDecode(token);
-          // Check expiration
           if (decoded.exp * 1000 < Date.now()) {
             setInitialRoute('Auth');
           } else if (decoded.is_onboarded) {
@@ -132,14 +128,13 @@ const AppNavigator = () => {
         setIsLoading(false);
       }
     };
-
     checkAuth();
   }, []);
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -148,37 +143,18 @@ const AppNavigator = () => {
     <NavigationContainer>
       <RootStack.Navigator
         initialRouteName={initialRoute}
-        screenOptions={({ navigation }) => ({
-          headerTintColor: COLORS.primary,
+        screenOptions={{
+          headerTintColor: colors.primary,
           headerTitleStyle: { fontWeight: 'bold' },
-          headerRight: () => <HomeHeaderRight navigation={navigation} />,
-        })}
+          headerStyle: { backgroundColor: colors.card },
+        }}
       >
-        <RootStack.Screen 
-          name="Auth" 
-          component={AuthNavigator} 
-          options={{ headerShown: false }} 
-        />
-        <RootStack.Screen 
-          name="Onboarding" 
-          component={ProfileSetupScreen} 
-          options={{ headerShown: false }} 
-        />
-        <RootStack.Screen 
-          name="App" 
-          component={DrawerNavigator} 
-          options={{ headerShown: false }} 
-        />
-        <RootStack.Screen 
-          name="CourseDetail" 
-          component={CourseDetailScreen} 
-          options={{ headerShown: false }} 
-        />
-        <RootStack.Screen 
-          name="VideoPlayer" 
-          component={VideoPlayerScreen} 
-          options={{ title: 'Learning Player' }} 
-        />
+        <RootStack.Screen name="Auth" component={AuthNavigator} options={{ headerShown: false }} />
+        <RootStack.Screen name="Onboarding" component={ProfileSetupScreen} options={{ headerShown: false }} />
+        <RootStack.Screen name="App" component={DrawerNavigator} options={{ headerShown: false }} />
+        <RootStack.Screen name="CourseDetail" component={CourseDetailScreen} options={{ headerShown: false }} />
+        <RootStack.Screen name="VideoPlayer" component={VideoPlayerScreen} options={{ title: 'Learning Player' }} />
+        <RootStack.Screen name="ReferAndEarn" component={ReferAndEarnScreen} options={{ headerShown: false }} />
       </RootStack.Navigator>
     </NavigationContainer>
   );

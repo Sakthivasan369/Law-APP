@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
-import { COLORS, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { SPACING, BORDER_RADIUS } from '../constants/theme';
 import { apiRequest, API_ENDPOINTS, setAuthToken } from '../services/api';
 import PrimaryButton from '../components/PrimaryButton';
 import { jwtDecode } from 'jwt-decode';
+import { useUser } from '../context/UserContext';
+import { useTheme } from '../context/ThemeContext';
 
 const OTPScreen = ({ route, navigation }: any) => {
   const { email } = route.params;
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { fetchUserProfile } = useUser();
+  const { colors } = useTheme();
 
   const handleVerifyOTP = async () => {
     if (code.length !== 6) {
@@ -29,13 +33,16 @@ const OTPScreen = ({ route, navigation }: any) => {
       const token = response.data.token;
       await setAuthToken(token);
       
+      // Fetch user profile immediately after storing the token
+      await fetchUserProfile();
+
       // Decode token to check onboarding status
       const decoded: any = jwtDecode(token);
       
       if (decoded.is_onboarded) {
-        navigation.replace('App'); // Assuming 'App' is the DrawerRoot
+        navigation.replace('App');
       } else {
-        navigation.replace('Onboarding'); // Go to ProfileSetup
+        navigation.replace('Onboarding');
       }
       
     } catch (err: any) {
@@ -46,15 +53,16 @@ const OTPScreen = ({ route, navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
-        <Text style={styles.title}>Verify OTP</Text>
-        <Text style={styles.subtitle}>Enter the 6-digit code sent to {email}</Text>
+        <Text style={[styles.title, { color: colors.primary }]}>Verify OTP</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Enter the 6-digit code sent to {email}</Text>
 
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: colors.textPrimary }]}
             placeholder="------"
+            placeholderTextColor={colors.textDisabled}
             value={code}
             onChangeText={setCode}
             keyboardType="number-pad"
@@ -64,7 +72,7 @@ const OTPScreen = ({ route, navigation }: any) => {
           />
         </View>
         
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {error ? <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text> : null}
 
         <PrimaryButton 
           title="Verify" 
@@ -74,7 +82,7 @@ const OTPScreen = ({ route, navigation }: any) => {
         />
         
         <TouchableOpacity style={styles.resendButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.resendText}>Change Email / Resend</Text>
+          <Text style={[styles.resendText, { color: colors.primary }]}>Change Email / Resend</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -84,7 +92,6 @@ const OTPScreen = ({ route, navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
   },
   content: {
     padding: SPACING.xl,
@@ -94,31 +101,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: COLORS.primary,
     marginBottom: SPACING.sm,
   },
   subtitle: {
     fontSize: 16,
-    color: COLORS.textSecondary,
     marginBottom: SPACING.xl,
   },
   inputContainer: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: BORDER_RADIUS.md,
     paddingHorizontal: SPACING.md,
     height: 60,
     justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
   },
   input: {
     fontSize: 24,
     letterSpacing: 10,
-    color: COLORS.textPrimary,
     fontWeight: 'bold',
   },
   errorText: {
-    color: COLORS.error,
     marginTop: SPACING.sm,
     fontSize: 14,
     textAlign: 'center',
@@ -128,7 +129,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resendText: {
-    color: COLORS.primary,
     fontWeight: '600',
   },
 });
