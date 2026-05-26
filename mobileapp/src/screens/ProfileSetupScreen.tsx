@@ -55,6 +55,12 @@ const ProfileSetupScreen = ({ navigation }: any) => {
       // Navigation replace because we don't want them to go back to onboarding
       navigation.replace('App');
     } catch (err: any) {
+      // If the server says already onboarded, just navigate to the app
+      if (err.message === 'already_onboarded') {
+        await fetchUserProfile();
+        navigation.replace('App');
+        return;
+      }
       setError(err.message || 'Failed to complete profile setup');
     } finally {
       setLoading(false);

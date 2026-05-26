@@ -6,7 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { jwtDecode } from 'jwt-decode';
-import { getAuthToken } from '../services/api';
+import { getAuthToken, apiRequest, API_ENDPOINTS } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
 
 // Screens
@@ -116,7 +116,19 @@ const AppNavigator = () => {
           } else if (decoded.is_onboarded) {
             setInitialRoute('App');
           } else {
-            setInitialRoute('Onboarding');
+            // JWT says not onboarded, but the token might be stale.
+            // Verify the real status from the server.
+            try {
+              const result = await apiRequest(API_ENDPOINTS.ME);
+              if (result?.data?.is_onboarded) {
+                setInitialRoute('App');
+              } else {
+                setInitialRoute('Onboarding');
+              }
+            } catch {
+              // If /me fails, fall back to what the JWT says
+              setInitialRoute('Onboarding');
+            }
           }
         } else {
           setInitialRoute('Auth');

@@ -12,10 +12,11 @@ import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
 import { BORDER_RADIUS, SPACING, SHADOWS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
+import { removeAuthToken } from '../services/api';
 
 const CustomDrawer = (props: any) => {
   const { isDarkMode, toggleTheme, colors } = useTheme();
-  const { user } = useUser();
+  const { user, clearUser } = useUser();
 
   const menuItems = [
     { icon: 'book-outline', label: 'Test Series', type: 'Ionicons' },
@@ -30,16 +31,25 @@ const CustomDrawer = (props: any) => {
     }
   };
 
+  const handleLogout = async () => {
+    await removeAuthToken();
+    clearUser();
+    props.navigation.reset({
+      index: 0,
+      routes: [{ name: 'Auth' }],
+    });
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerContent}>
         {/* Profile Header Section */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.profileSection}
           onPress={() => props.navigation.navigate('ProfileTab')}
         >
           <Image
-            source={{ uri: 'https://i.pravatar.cc/150?u=sakthi' }}
+            source={{ uri: 'https://avatar.iran.liara.run/public' }}
             style={[styles.avatar, { borderColor: colors.primary }]}
           />
           <View style={styles.profileInfo}>
@@ -96,11 +106,11 @@ const CustomDrawer = (props: any) => {
 
       {/* Footer Section */}
       <View style={[styles.footer, { borderTopColor: colors.divider }]}>
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <MaterialIcons name="logout" size={22} color={colors.error} />
           <Text style={[styles.logoutText, { color: colors.error }]}>Logout</Text>
         </TouchableOpacity>
-        
+
         <View style={styles.footerInfo}>
           <Text style={[styles.versionText, { color: colors.textDisabled }]}>App Version: 1.0.0</Text>
           <Text style={[styles.madeWithText, { color: colors.textDisabled }]}>Made with ❤️ in India</Text>
